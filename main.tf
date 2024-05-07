@@ -1,10 +1,10 @@
 
 terraform {
-  required_providers {
-    aws = {
-      source = "hashicorp/aws"
-      version = "5.45.0"
-    }
+   backend "s3" {
+    bucket                  = "terraform-s3-state-jonathan"
+    key                     = "my-terraform-project"
+    region                  = "eu-north-1"
+    shared_credentials_file = "~/.aws/credentials"
   }
 }
 
@@ -172,10 +172,7 @@ resource "aws_vpc_endpoint" "ec2_messages_endpoint_b" {
   service_name = "com.amazonaws.eu-north-1.ec2messages"
   vpc_endpoint_type = "Interface"
 }
-# resource "aws_vpc_endpoint" "s3_endpoint" {
-#   vpc_id       = aws_vpc.my_vpc.id
-#   service_name = "com.amazonaws.eu-north-1.s3"
-# }
+
 
 # Create EC2 instances in VPCs A and B
 resource "aws_instance" "instance-a" {
@@ -219,7 +216,6 @@ resource "aws_security_group" "interface_endpoints_sg" {
     cidr_blocks = ["0.0.0.0/0"] # Allow traffic to any destination
   }
 }
-
 
 # Create interface endpoints in VPC C
 resource "aws_vpc_endpoint" "s3_endpoint" {
@@ -324,67 +320,3 @@ resource "aws_route53_record" "s3_endpoint_record" {
     evaluate_target_health = false
   }
 }
-
-# data "dns_a_record_set" "s3_dns" {
-#   host = local.s3_dns
-# }
-
-
-# locals {
-#   final_s3_dns = "${join(",", data.dns_a_record_set.s3_dns.addrs)}"
-# }
-
-# # Create a Route 53 record pointing to the VPC endpoint
-# resource "aws_route53_record" "vpc_endpoint_record" {
-#   zone_id = aws_route53_zone.private.zone_id
-#   name    = "jonathantry.com/s3"
-#   type    = "A"
-#   ttl     = "300"
-#   records = [aws_vpc_endpoint.s3_endpoint.dns_entry[0].dns_name]
-# }
-
-# resource "aws_route53_resolver_endpoint" "jonathantry" {
-#   name      = "jonathantry"
-#   direction = "INBOUND"
-
-#   security_group_ids = [aws_security_group.interface_endpoints_sg.id]
-
-#   ip_address {
-#     subnet_id = aws_subnet.subnet_c.id
-#   }
-
-#   ip_address {
-#     subnet_id = aws_subnet.subnet_c2.id
-#   }
-
-#   protocols = ["Do53", "DoH"]
-# }
-
-# # Extract DNS IP address from DHCP options
-# locals {
-#   vpc_dns_ip = data.aws_vpc_dhcp_options.dhcp_option.options[0].value
-# }
-
-# data "aws_route53_resolver_endpoint" "default" {
-#   filter {
-#     name   = "direction"
-#     values = ["INBOUND"]
-#   }
-# }
-
-
-# # Create DNS Resolver Rule for Route 53 Private Hosted Zone
-# resource "aws_route53_resolver_rule" "private_hosted_zone_rule" {
-#   domain_name = "jonathantry.com" # Replace with your private hosted zone domain name
-#   rule_type   = "FORWARD"
-#   resolver_endpoint_id =aws_route53_resolver_endpoint.default.id  # Specify the ID of your Route 53 resolver endpoint
-#   target_ip {
-#     ip = local.vpc_dns_ip  # Use the dynamically retrieved DNS IP address
-#   }
-# }
-
-# # Associate VPC C with the DNS Resolver Rule
-# resource "aws_route53_resolver_rule_association" "association" {
-#   resolver_rule_id = aws_route53_resolver_rule.private_hosted_zone_rule.id
-#   vpc_id           = aws_vpc.vpc_c.id
-# }
