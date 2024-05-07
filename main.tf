@@ -17,16 +17,28 @@ provider "aws" {
 # Create VPCs
 resource "aws_vpc" "vpc_a" {
   cidr_block = "10.0.0.0/16"
+  enable_dns_hostnames = true
+
+    tags = {
+    Name = "VPC_A"
+  }
 }
 
 resource "aws_vpc" "vpc_b" {
   cidr_block = "10.1.0.0/16"
+  enable_dns_hostnames = true
+
+      tags = {
+    Name = "VPC_B"
+  }
 }
 
 resource "aws_vpc" "vpc_c" {
   cidr_block = "10.2.0.0/16"
+    enable_dns_hostnames = true
+
    tags = {
-    Name = "vpc_c"
+    Name = "VPC_C"
   }
 }
 
@@ -34,11 +46,19 @@ resource "aws_vpc" "vpc_c" {
 resource "aws_subnet" "subnet_a" {
   vpc_id     = aws_vpc.vpc_a.id
   cidr_block = "10.0.1.0/24"
+
+    tags = {
+    Name = "subnet_a"
+  }
 }
 
 resource "aws_subnet" "subnet_b" {
   vpc_id     = aws_vpc.vpc_b.id
   cidr_block = "10.1.1.0/24"
+
+    tags = {
+    Name = "subnet_b"
+  }
 }
 
 resource "aws_subnet" "subnet_c" {
@@ -137,7 +157,8 @@ resource "aws_iam_instance_profile" "ssm_profile" {
 resource "aws_vpc_endpoint" "ssm_endpoint_a" {
   vpc_id       = aws_vpc.vpc_a.id
   service_name = "com.amazonaws.eu-north-1.ssm"
-   vpc_endpoint_type = "Interface"
+  vpc_endpoint_type = "Interface"
+  private_dns_enabled = true
 }
 
 
@@ -145,12 +166,14 @@ resource "aws_vpc_endpoint" "ssm_messages_endpoint_a" {
   vpc_id       = aws_vpc.vpc_a.id
   service_name = "com.amazonaws.eu-north-1.ssmmessages"
   vpc_endpoint_type = "Interface"
+  private_dns_enabled = true
 }
 
 resource "aws_vpc_endpoint" "ec2_messages_endpoint_a" {
   vpc_id       = aws_vpc.vpc_a.id
   service_name = "com.amazonaws.eu-north-1.ec2messages"
   vpc_endpoint_type = "Interface"
+  private_dns_enabled = true
 }
 
 # Create VPC endpoints for SSM and S3
@@ -158,6 +181,7 @@ resource "aws_vpc_endpoint" "ssm_endpoint_b" {
   vpc_id       = aws_vpc.vpc_b.id
   service_name = "com.amazonaws.eu-north-1.ssm"
   vpc_endpoint_type = "Interface"
+  private_dns_enabled = true
 }
 
 
@@ -165,12 +189,14 @@ resource "aws_vpc_endpoint" "ssm_messages_endpoint_b" {
   vpc_id       = aws_vpc.vpc_b.id
   service_name = "com.amazonaws.eu-north-1.ssmmessages"
   vpc_endpoint_type = "Interface"
+  private_dns_enabled = true
 }
 
 resource "aws_vpc_endpoint" "ec2_messages_endpoint_b" {
-  vpc_id       = aws_vpc.vpc_a.id
+  vpc_id       = aws_vpc.vpc_b.id
   service_name = "com.amazonaws.eu-north-1.ec2messages"
   vpc_endpoint_type = "Interface"
+  private_dns_enabled = true
 }
 
 
@@ -290,7 +316,7 @@ resource "aws_route_table_association" "association_b" {
 }
 
 resource "aws_route53_zone" "private" {
-  name = "jonathantry.com"
+  name = "s3.eu-north-1.amazonaws.com"
 
  vpc {
     vpc_id = aws_vpc.vpc_c.id 
@@ -311,7 +337,7 @@ locals {
 
 resource "aws_route53_record" "s3_endpoint_record" {
   zone_id = aws_route53_zone.private.zone_id
-  name    = "jonathantry.com/s3"
+  name    = ""
   type    = "A"
 
   alias {
