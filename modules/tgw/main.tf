@@ -6,7 +6,3 @@ resource "aws_ec2_transit_gateway" "tgw" {
     Name = var.tgw_name
   }
 }
-
-output "tgw_id" {
-  value = aws_ec2_transit_gateway.tgw.id
-}

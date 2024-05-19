@@ -23,6 +23,14 @@ module "vpcs" {
   tgw_id             = module.tgw.tgw_id
 }
 
+module "endpoints" {
+  source = "./modules/endpoints"
+  spoke_vpcs = module.vpcs.spoke_vpcs
+  shared_services_vpc_id = module.vpcs.shared_services_endpoints_vpc_id
+  shared_services_subnet_id = module.vpcs.shared_services_endpoints_subnet_id
+ 
+}
+
 # # Create VPCs
 # resource "aws_vpc" "vpc_a" {
 #   cidr_block = "10.0.0.0/16"
